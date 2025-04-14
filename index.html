@@ -1,0 +1,945 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数据可视化综合展示</title>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <style>
+        :root {
+            --primary: #3a86ff;
+            --secondary: #8338ec;
+            --accent: #ff006e;
+            --dark: #1a1a2e;
+            --light: #f8f9fa;
+            --gray: #6c757d;
+            --glass: rgba(255, 255, 255, 0.15);
+            --glass-border: rgba(255, 255, 255, 0.2);
+            --shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            --spacing: 1.5rem;
+            --radius: 12px;
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            line-height: 1.6;
+            color: var(--dark);
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4e8f0 100%);
+            background-attachment: fixed;
+            padding-bottom: 2rem;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        header {
+            padding: 3rem 0 2rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            z-index: -1;
+            transform: skewY(-2deg);
+            transform-origin: top left;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 1rem;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            color: rgba(255, 255, 255, 0.9);
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .tabs {
+            display: flex;
+            justify-content: center;
+            margin: 2rem 0;
+            flex-wrap: wrap;
+        }
+
+        .tab-button {
+            padding: 0.8rem 1.5rem;
+            margin: 0 0.5rem 1rem;
+            background: white;
+            border: none;
+            border-radius: 50px;
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--dark);
+            cursor: pointer;
+            transition: var(--transition);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .tab-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .tab-button.active {
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 4px 12px rgba(58, 134, 255, 0.3);
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .chart-container {
+            background: white;
+            border-radius: var(--radius);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+        }
+
+        .chart-container:hover {
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
+        }
+
+        .chart-title {
+            text-align: center;
+            margin-bottom: 1.5rem;
+            color: var(--primary);
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        #sankey-chart, #sunburst-chart, #quality-chart {
+            width: 100%;
+            height: 600px;
+        }
+
+        #company-report {
+            min-height: 600px;
+        }
+
+        .filter {
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+
+        select {
+            padding: 0.5rem 1rem;
+            font-size: 1rem;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+            background: white;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .card {
+            background: white;
+            border-radius: var(--radius);
+            padding: 1.5rem;
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+        }
+
+        .card h2 {
+            font-size: 1.3rem;
+            margin-bottom: 1rem;
+            color: var(--primary);
+            position: relative;
+            padding-bottom: 0.5rem;
+        }
+
+        .card h2::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 50px;
+            height: 3px;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            border-radius: 3px;
+        }
+
+        .card p {
+            margin-bottom: 1rem;
+            color: var(--dark);
+        }
+
+        .card ul {
+            padding-left: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .card li {
+            margin-bottom: 0.5rem;
+            position: relative;
+            list-style-type: none;
+        }
+
+        .card li::before {
+            content: '';
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background: var(--accent);
+            border-radius: 50%;
+            margin-right: 0.75rem;
+            position: absolute;
+            left: -1.5rem;
+            top: 0.5rem;
+        }
+
+        .highlight {
+            background: linear-gradient(to right, rgba(58, 134, 255, 0.1), rgba(131, 56, 236, 0.1));
+            padding: 1rem;
+            border-radius: var(--radius);
+            margin: 1rem 0;
+            border-left: 4px solid var(--primary);
+        }
+
+        .highlight h3 {
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: var(--radius);
+            padding: 1rem;
+            text-align: center;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .stat-card .number {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-card .label {
+            font-size: 0.8rem;
+            color: var(--gray);
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 3rem;
+            color: var(--gray);
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 768px) {
+            .card-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            header {
+                padding: 2rem 0 1.5rem;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .container {
+                padding: 0 1.5rem;
+            }
+            
+            #sankey-chart, #sunburst-chart, #quality-chart {
+                height: 400px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>数据可视化综合展示平台</h1>
+            <p class="subtitle">交互式数据图表与信息展示</p>
+        </header>
+
+        <div class="tabs">
+            <button class="tab-button active" onclick="openTab('tab1')">手机品牌分析</button>
+            <button class="tab-button" onclick="openTab('tab2')">公司调研报告</button>
+            <button class="tab-button" onclick="openTab('tab3')">个人成长分析</button>
+            <button class="tab-button" onclick="openTab('tab4')">工程质量管理</button>
+        </div>
+
+        <!-- 手机品牌消费者分布桑基图 -->
+        <div id="tab1" class="tab-content active">
+            <div class="chart-container">
+                <div class="chart-title">手机品牌消费者分布交互式桑基图</div>
+                <div class="filter">
+                    <label for="brandFilter">选择显示品牌: </label>
+                    <select id="brandFilter" onchange="updateSankeyChart()">
+                        <option value="all">全部品牌</option>
+                        <option value="华为">华为</option>
+                        <option value="苹果">苹果</option>
+                        <option value="小米">小米</option>
+                        <option value="OPPO">OPPO</option>
+                        <option value="vivo">vivo</option>
+                        <option value="其他">其他</option>
+                    </select>
+                </div>
+                <div id="sankey-chart"></div>
+            </div>
+        </div>
+
+        <!-- 公司背景调研报告 -->
+        <div id="tab2" class="tab-content">
+            <div class="chart-container" id="company-report">
+                <div class="chart-title">南通达欣工程股份有限公司背景调研报告</div>
+                <div class="card-grid">
+                    <div class="card">
+                        <h2>公司概况</h2>
+                        <p>南通达欣工程股份有限公司(以下简称"达欣集团")始建于1974年5月，坐落于江苏省海安市高新技术产业开发区通阳东路10号，是全国知名的"南通铁军"主力成员。</p>
+                        <p>公司注册资本30016万人民币，实缴资本30016万人民币。经过近50年的发展，达欣集团已从单一的建筑施工企业发展成为涵盖建筑施工、房地产、商业物流、金融业、餐饮业五大板块的综合性集团公司。</p>
+                        <p>目前公司具有国家房屋建筑工程施工总承包特级资质、建筑行业(建筑工程、人防工程)甲级设计资质、对外承包工程经营资格，同时拥有地基基础、钢结构、市政工程施工、水利工程施工、园林施工等相应资质。</p>
+                    </div>
+
+                    <div class="card">
+                        <h2>组织架构与业务布局</h2>
+                        <p>达欣集团下设八个工程公司，业务遍布北京、上海、天津、江苏、河北、黑龙江、湖南、山西、山东、新疆等十个省市的二十多个城市。</p>
+                        <p>集团对外投资了24家企业，其中包括全资子公司南通达欣置业有限公司(成立于2012年，注册资本3000万人民币，主要从事房地产开发和物业管理)。</p>
+                        <p>在海外市场方面，达欣集团业务涉及柬埔寨、以色列等国。2023年12月，集团董事长马和军应邀参加江苏建设领域(柬埔寨)推介会并作推介发言。</p>
+                        
+                        <div class="highlight">
+                            <h3>核心业务板块</h3>
+                            <ul>
+                                <li>建筑施工</li>
+                                <li>房地产开发</li>
+                                <li>商业物流</li>
+                                <li>金融业</li>
+                                <li>餐饮业</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <h2>管理团队与股东结构</h2>
+                        <p>达欣集团现任党委书记为杭小建(2023年1月任职)，董事长为马和军，总经理为王邦国。马和军同时担任多家关联企业的法定代表人。</p>
+                        <p>根据公开信息，徐俊担任南通市达欣工程股份有限公司山西分公司法定代表人，同时是达欣集团的股东之一，持股比例为2.99%。</p>
+                        <p>集团其他商业合作伙伴还包括徐祝军、徐阳、吕建华、梅枫林、陈春红、徐仁忠、陶成华、陈贵荣等。</p>
+                        
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <div class="number">30016万</div>
+                                <div class="label">注册资本</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="number">2.99%</div>
+                                <div class="label">徐俊持股比例</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <h2>经营业绩与荣誉资质</h2>
+                        <p>达欣集团在建筑行业取得了显著成就，2023年位列ENR/建筑时报"中国承包商80强"第46位，连续六年进入该榜单。</p>
+                        <p>2022年荣获"南通市市长质量奖"，评审组对其质量体系成效和经营管理给予高度肯定。2023年入围"江苏民营企业200强"。</p>
+                        
+                        <div class="highlight">
+                            <h3>主要荣誉</h3>
+                            <ul>
+                                <li>2023年中国承包商80强第46位</li>
+                                <li>2022年南通市市长质量奖</li>
+                                <li>江苏民营企业200强</li>
+                                <li>2022年度江苏建筑业"百强企业"综合实力类排名第13位</li>
+                                <li>2024年南通市APEC商务旅行卡诚信A级企业</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <h2>技术创新与智能建造</h2>
+                        <p>达欣集团高度重视技术创新和数字化转型，拥有389项专利和3项著作权，2024年推出"一种隧道施工用除尘装置"专利。</p>
+                        <p>2023年11月，当选全国智能建造与建筑工业化产教融合共同体副理事长单位。积极推进业财税资一体化平台和新中大I8系统应用，加快数字化转型步伐。</p>
+                        <p>集团与高校开展产学研合作，如2021年与交通与土木工程学院合作，共同商讨人才培养方案；与江苏城乡建设职业学院保持深度校企合作关系。</p>
+                        
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <div class="number">389</div>
+                                <div class="label">专利数量</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="number">3</div>
+                                <div class="label">著作权</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <h2>管理体系与社会责任</h2>
+                        <p>达欣集团建立了完善的管理体系，通过质量管理体系(GB/T19001-2016)、环境管理体系(GB/T24001-2016)、职业健康安全管理体系(GB/T45001-2020)和工程建设施工企业质量管理规范(GB/T50430-2017)认证。</p>
+                        <p>2023年9月通过北京大陆航星质量认证中心的监督审核。</p>
+                        
+                        <div class="highlight">
+                            <h3>社会责任</h3>
+                            <ul>
+                                <li>2023年1月收到山西省壶关县北庄村村委会党支部的锦旗和感谢信</li>
+                                <li>2023年2月组织135名员工参与无偿献血活动，献血总量达29100ml</li>
+                                <li>定期开展敬老院慰问、留守儿童关爱等公益活动</li>
+                                <li>连续八年获评全国"安康杯"竞赛优胜单位</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <h2>近期动态与未来展望</h2>
+                        <p>2023年达欣集团主要动态包括：3月接待蒙古国戈壁苏木贝尔省省长、中国对外承包工程商会会长等国内外考察团；6月非公党建书刊《铸魂》出版发行座谈会在北京举行。</p>
+                        <p>7月海安市委书记考察"欣心向党"党建主题馆，集团获授"突出贡献奖"金牌；9月获评"2023创新型民营建筑企业"；12月组织召开2023年度工作总结会议。</p>
+                        <p>从近期招标信息看，2025年1月达欣集团以10377449.78元的报价成为苏州SL商业项目零星工程的第二中标候选人，显示其持续参与重大项目建设。</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 个人成长旭日图 -->
+        <div id="tab3" class="tab-content">
+            <div class="chart-container">
+                <div class="chart-title">个人成长全景图</div>
+                <div id="sunburst-chart"></div>
+            </div>
+        </div>
+
+        <!-- 工程质量管理旭日图 -->
+        <div id="tab4" class="tab-content">
+            <div class="chart-container">
+                <div class="chart-title">工程质量管理全景图</div>
+                <div id="quality-chart"></div>
+            </div>
+        </div>
+
+        <footer>
+            <p>数据可视化综合展示平台 &copy; 2024 | 基于ECharts实现</p>
+        </footer>
+    </div>
+
+    <script>
+        // 标签页切换功能
+        function openTab(tabId) {
+            // 隐藏所有标签内容
+            const tabContents = document.getElementsByClassName('tab-content');
+            for (let i = 0; i < tabContents.length; i++) {
+                tabContents[i].classList.remove('active');
+            }
+            
+            // 取消所有标签按钮的active状态
+            const tabButtons = document.getElementsByClassName('tab-button');
+            for (let i = 0; i < tabButtons.length; i++) {
+                tabButtons[i].classList.remove('active');
+            }
+            
+            // 显示选中的标签内容并激活按钮
+            document.getElementById(tabId).classList.add('active');
+            event.currentTarget.classList.add('active');
+            
+            // 在切换标签时重新渲染图表以确保正确显示
+            setTimeout(() => {
+                if (tabId === 'tab1' && sankeyChart) {
+                    sankeyChart.resize();
+                } else if (tabId === 'tab3' && sunburstChart) {
+                    sunburstChart.resize();
+                } else if (tabId === 'tab4' && qualityChart) {
+                    qualityChart.resize();
+                }
+            }, 100);
+        }
+
+        // 1. 手机品牌消费者分布桑基图
+        let sankeyChart = echarts.init(document.getElementById('sankey-chart'));
+        
+        // 原始数据
+        var allData = [
+            {name: '男'},
+            {name: '女'},
+            {name: '华为'},
+            {name: '苹果'},
+            {name: '小米'},
+            {name: 'OPPO'},
+            {name: 'vivo'},
+            {name: '其他'},
+            {name: '45岁以上'},
+            {name: '35-44岁'},
+            {name: '25-34岁'},
+            {name: '18-24岁'},
+            {name: '18岁以下'}
+        ];
+        
+        var allLinks = [
+            {source: '男', target: '华为', value: 1100, price: 7000},
+            {source: '男', target: '苹果', value: 730, price: 9000},
+            {source: '男', target: '小米', value: 680, price: 4000},
+            {source: '男', target: 'OPPO', value: 630, price: 4500},
+            {source: '男', target: 'vivo', value: 530, price: 3500},
+            {source: '男', target: '其他', value: 1630, price: 3000},
+            {source: '女', target: '华为', value: 680, price: 8000},
+            {source: '女', target: '苹果', value: 1080, price: 10000},
+            {source: '女', target: '小米', value: 370, price: 5000},
+            {source: '女', target: 'OPPO', value: 850, price: 6000},
+            {source: '女', target: 'vivo', value: 630, price: 4000},
+            {source: '女', target: '其他', value: 1090, price: 3500},
+            {source: '华为', target: '45岁以上', value: 135, price: 11000},
+            {source: '华为', target: '35-44岁', value: 319, price: 8500},
+            {source: '华为', target: '25-34岁', value: 986, price: 7500},
+            {source: '华为', target: '18-24岁', value: 240, price: 6000},
+            {source: '华为', target: '18岁以下', value: 100, price: 5000},
+            {source: '苹果', target: '45岁以上', value: 80, price: 6500},
+            {source: '苹果', target: '35-44岁', value: 121, price: 7800},
+            {source: '苹果', target: '25-34岁', value: 659, price: 8500},
+            {source: '苹果', target: '18-24岁', value: 545, price: 8000},
+            {source: '苹果', target: '18岁以下', value: 405, price: 6000},
+            {source: '小米', target: '45岁以上', value: 55, price: 5000},
+            {source: '小米', target: '35-44岁', value: 117, price: 4500},
+            {source: '小米', target: '25-34岁', value: 655, price: 4500},
+            {source: '小米', target: '18-24岁', value: 138, price: 4000},
+            {source: '小米', target: '18岁以下', value: 85, price: 5000},
+            {source: 'OPPO', target: '45岁以上', value: 67, price: 3500},
+            {source: 'OPPO', target: '35-44岁', value: 148, price: 6000},
+            {source: 'OPPO', target: '25-34岁', value: 598, price: 5500},
+            {source: 'OPPO', target: '18-24岁', value: 466, price: 6000},
+            {source: 'OPPO', target: '18岁以下', value: 201, price: 3500},
+            {source: 'vivo', target: '45岁以上', value: 39, price: 4000},
+            {source: 'vivo', target: '35-44岁', value: 85, price: 6000},
+            {source: 'vivo', target: '25-34岁', value: 611, price: 5000},
+            {source: 'vivo', target: '18-24岁', value: 290, price: 6000},
+            {source: 'vivo', target: '18岁以下', value: 135, price: 4000},
+            {source: '其他', target: '45岁以上', value: 141, price: 3000},
+            {source: '其他', target: '35-44岁', value: 307, price: 3000},
+            {source: '其他', target: '25-34岁', value: 1336, price: 3000},
+            {source: '其他', target: '18-24岁', value: 594, price: 3000},
+            {source: '其他', target: '18岁以下', value: 342, price: 3000}
+        ];
+        
+        // 初始化图表
+        function initSankeyChart(data, links) {
+            var option = {
+                tooltip: {
+                    trigger: 'item',
+                    triggerOn: 'mousemove',
+                    formatter: function(params) {
+                        if (params.dataType === 'node') {
+                            return params.name;
+                        } else if (params.dataType === 'edge') {
+                            return params.data.source + ' → ' + params.data.target + 
+                                   '<br/>人数: ' + params.data.value + 
+                                   '<br/>平均价位: ¥' + params.data.price;
+                        }
+                    }
+                },
+                series: [{
+                    type: 'sankey',
+                    data: data,
+                    links: links,
+                    emphasis: {
+                        focus: 'adjacency'
+                    },
+                    levels: [
+                        {
+                            depth: 0,
+                            itemStyle: {
+                                color: '#fbb4ae'
+                            },
+                            lineStyle: {
+                                color: 'source',
+                                opacity: 0.6
+                            }
+                        },
+                        {
+                            depth: 1,
+                            itemStyle: {
+                                color: '#b3cde3'
+                            },
+                            lineStyle: {
+                                color: 'source',
+                                opacity: 0.6
+                            }
+                        },
+                        {
+                            depth: 2,
+                            itemStyle: {
+                                color: '#ccebc5'
+                            },
+                            lineStyle: {
+                                color: 'source',
+                                opacity: 0.6
+                            }
+                        }
+                    ],
+                    lineStyle: {
+                        curveness: 0.5
+                    },
+                    label: {
+                        color: 'rgba(0, 0, 0, 0.7)',
+                        fontFamily: 'Arial',
+                        fontSize: 12
+                    },
+                    itemStyle: {
+                        borderWidth: 1,
+                        borderColor: '#aaa'
+                    },
+                    nodeWidth: 15,
+                    nodeGap: 25
+                }]
+            };
+            
+            sankeyChart.setOption(option);
+        }
+        
+        // 更新图表数据
+        function updateSankeyChart() {
+            var selectedBrand = document.getElementById('brandFilter').value;
+            var filteredLinks = [];
+            
+            if (selectedBrand === 'all') {
+                // 显示全部数据
+                initSankeyChart(allData, allLinks);
+                return;
+            }
+            
+            // 筛选与所选品牌相关的链接
+            var relatedNodes = new Set();
+            relatedNodes.add(selectedBrand);
+            
+            // 找出所有与所选品牌相关的链接
+            allLinks.forEach(function(link) {
+                if (link.source === selectedBrand || link.target === selectedBrand) {
+                    filteredLinks.push(link);
+                    relatedNodes.add(link.source);
+                    relatedNodes.add(link.target);
+                }
+            });
+            
+            // 找出所有相关的性别和年龄节点
+            allLinks.forEach(function(link) {
+                if (link.target === selectedBrand) {
+                    relatedNodes.add(link.source);
+                }
+                if (link.source === selectedBrand) {
+                    relatedNodes.add(link.target);
+                }
+            });
+            
+            // 筛选相关节点
+            var filteredData = allData.filter(function(node) {
+                return relatedNodes.has(node.name);
+            });
+            
+            initSankeyChart(filteredData, filteredLinks);
+        }
+        
+        // 初始化显示全部数据
+        initSankeyChart(allData, allLinks);
+
+        // 2. 个人成长旭日图
+        let sunburstChart = echarts.init(document.getElementById('sunburst-chart'));
+        
+        // 模拟数据（个人成长领域）
+        const personalData = {
+            name: "个人成长",
+            children: [
+                {
+                    name: "学习发展",
+                    value: 35,
+                    children: [
+                        { name: "在线课程", value: 12 },
+                        { name: "专业书籍", value: 10 },
+                        { name: "行业研讨会", value: 8 },
+                        { name: "技能认证", value: 5 }
+                    ]
+                },
+                {
+                    name: "身心健康",
+                    value: 30,
+                    children: [
+                        { name: "健身运动", value: 15 },
+                        { name: "冥想练习", value: 8 },
+                        { name: "健康饮食", value: 5 },
+                        { name: "睡眠管理", value: 2 }
+                    ]
+                },
+                {
+                    name: "社交关系",
+                    value: 31,
+                    children: [
+                        { name: "家人互动", value: 10 },
+                        { name: "朋友聚会", value: 8 },
+                        { name: "职业社交", value: 5 },
+                        { name: "社区学习", value: 8 }
+                    ]
+                },
+                {
+                    name: "职业发展",
+                    value: 40,
+                    children: [
+                        { name: "项目管理", value: 15 },
+                        { name: "领导力培训", value: 12 },
+                        { name: "团队协作", value: 8 },
+                        { name: "职业规划", value: 5 }
+                    ]
+                }
+            ]
+        };
+
+        // 配置项
+        const sunburstOption = {
+            title: {
+                text: '个人成长全景图',
+                subtext: '数据基于模拟成长记录',
+                left: 'center',
+                textStyle: {
+                    color: '#2c343c',
+                    fontSize: 18
+                }
+            },
+            tooltip: {
+                formatter: function (info) {
+                    return `<strong>${info.name}</strong><br/>成长指数: ${info.value}`;
+                }
+            },
+            series: {
+                type: 'sunburst',
+                data: personalData.children,
+                radius: [20, '90%'],
+                label: {
+                    rotate: 'radial',
+                    color: '#666',
+                    fontSize: 14
+                },
+                itemStyle: {
+                    borderRadius: 8,
+                    borderWidth: 2,
+                    borderColor: '#fff'
+                },
+                levels: [
+                    {   // 第一层样式
+                        r0: '0%',
+                        r: '30%',
+                        itemStyle: {
+                            color: '#5470c6'
+                        }
+                    },
+                    {   // 第二层样式
+                        r0: '30%',
+                        r: '60%',
+                        itemStyle: {
+                            color: '#91cc75'
+                        }
+                    },
+                    {   // 第三层样式
+                        r0: '60%',
+                        r: '80%',
+                        itemStyle: {
+                            color: '#fac858'
+                        }
+                    }
+                ],
+                emphasis: {
+                    focus: 'ancestor',
+                    itemStyle: {
+                        shadowBlur: 20,
+                        shadowColor: 'rgba(0, 0, 0, 0.2)'
+                    }
+                }
+            }
+        };
+
+        sunburstChart.setOption(sunburstOption);
+
+        // 3. 工程质量管理旭日图
+        let qualityChart = echarts.init(document.getElementById('quality-chart'));
+        
+        // 四层核心数据结构（修正嵌套结构）
+        const qualityData = {
+            name: "质量管理",
+            children: [
+                {
+                    name: "施工监控",
+                    value: 45,
+                    children: [
+                        { 
+                            name: "地基工程", 
+                            value: 15,
+                            children: [
+                                {name: "桩基检测", value: 6},
+                                {name: "基坑支护", value: 5},
+                                {name: "沉降观测", value: 4}
+                            ]
+                        },
+                        { 
+                            name: "主体结构", 
+                            value: 20,
+                            children: [
+                                {name: "钢筋绑扎", value: 8},
+                                {name: "模板工程", value: 7},
+                                {name: "混凝土浇筑", value: 5}
+                            ]
+                        },
+                        { 
+                            name: "装饰装修", 
+                            value: 10,
+                            children: [
+                                {name: "木工吊顶", value: 3},
+                                {name: "瓦工铺贴", value: 3},
+                                {name: "油漆涂饰", value: 4}
+                            ]
+                        }
+                    ]
+                },
+                {
+                    name: "材料检测",
+                    value: 30,
+                    children: [
+                        { name: "钢筋检测", value: 12 },
+                        { name: "混凝土试块", value: 10 },
+                        { name: "防水材料", value: 8 }
+                    ]
+                },
+                {
+                    name: "人员管理",
+                    value: 25,
+                    children: [
+                        { name: "资质审查", value: 10 },
+                        { name: "安全培训", value: 10 },
+                        { name: "技术交底", value: 5 }
+                    ]
+                },
+                {
+                    name: "智能技术",
+                    value: 40,
+                    children: [
+                        { name: "BIM应用", value: 15,children: [ {name: "数据建模", value: 6}, {name: "碰撞测试", value: 5},{name: "数据反馈", value: 4} ] },
+                        { name: "智能监测", value: 12 },
+                        { name: "无人机巡检", value: 8 },
+                        { name: "智能安全帽", value: 5 }
+                    ]
+                }
+            ]
+        };
+
+        // 配置项（保持四层结构）
+        const qualityOption = {
+            title: {
+                text: '工程质量管理全景图',
+                subtext: '数据基于年度质量报告',
+                left: 'center',
+                textStyle: {
+                    color: '#2c343c',
+                    fontSize: 18,
+                    fontWeight: 'bold'
+                }
+            },
+            tooltip: {
+                formatter: (params) => `<strong>${params.name}</strong><br/>质量指数: ${params.value}`
+            },
+            series: [{
+                type: 'sunburst',
+                data: qualityData.children,
+                radius: [20, '90%'],
+                label: {
+                    rotate: 'radial',
+                    color: '#666',
+                    fontSize: 14,
+                    formatter: '{b}\n{c}'
+                },
+                itemStyle: {
+                    borderRadius: 8,
+                    borderWidth: 2,
+                    borderColor: '#fff'
+                },
+                levels: [
+                    {  // 第一层（主分类）
+                        r0: '0%',
+                        r: '20%',
+                        itemStyle: { color: '#5470c6' }
+                    },
+                    {  // 第二层（子分类）
+                        r0: '20%',
+                        r: '45%',
+                        itemStyle: { color: '#73c0de' }
+                    },
+                    {  // 第三层（具体项目）
+                        r0: '45%',
+                        r: '70%',
+                        itemStyle: { color: '#91cc75' }
+                    },
+                    {  // 第四层（详细检测项）
+                        r0: '70%',
+                        r: '85%',
+                        itemStyle: { color: '#fac858' }
+                    }
+                ],
+                emphasis: {
+                    itemStyle: {
+                        shadowBlur: 20,
+                        shadowColor: 'rgba(0, 0, 0, 0.2)'
+                    }
+                }
+            }]
+        };
+
+        qualityChart.setOption(qualityOption);
+
+        // 窗口自适应
+        window.addEventListener('resize', function() {
+            sankeyChart.resize();
+            sunburstChart.resize();
+            qualityChart.resize();
+        });
+    </script>
+</body>
+</html>
