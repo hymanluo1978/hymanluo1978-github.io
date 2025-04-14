@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>手机品牌消费者分布交互式桑基图</title>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <style>
+        #main {
+            width: 1000px;
+            height: 700px;
+            margin: 0 auto;
+        }
+        .container {
+            width: 1000px;
+            margin: 0 auto;
+            text-align: center;
+            font-family: Arial, sans-serif;
+        }
+        .title {
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
+        .filter {
+            margin-bottom: 20px;
+        }
+        select {
+            padding: 8px 15px;
+            font-size: 16px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="title">手机品牌消费者分布交互式桑基图</h1>
+        <div class="filter">
+            <label for="brandFilter">选择显示品牌: </label>
+            <select id="brandFilter" onchange="updateChart()">
+                <option value="all">全部品牌</option>
+                <option value="华为">华为</option>
+                <option value="苹果">苹果</option>
+                <option value="小米">小米</option>
+                <option value="OPPO">OPPO</option>
+                <option value="vivo">vivo</option>
+                <option value="其他">其他</option>
+            </select>
+        </div>
+        <div id="main"></div>
+    </div>
+    <script>
+        var chartDom = document.getElementById('main');
+        var myChart = echarts.init(chartDom);
+        
+        // 原始数据
+        var allData = [
+            {name: '男'},
+            {name: '女'},
+            {name: '华为'},
+            {name: '苹果'},
+            {name: '小米'},
+            {name: 'OPPO'},
+            {name: 'vivo'},
+            {name: '其他'},
+            {name: '45岁以上'},
+            {name: '35-44岁'},
+            {name: '25-34岁'},
+            {name: '18-24岁'},
+            {name: '18岁以下'}
+        ];
+        
+        var allLinks = [
+            {source: '男', target: '华为', value: 1100, price: 7000},
+            {source: '男', target: '苹果', value: 730, price: 9000},
+            {source: '男', target: '小米', value: 680, price: 4000},
+            {source: '男', target: 'OPPO', value: 630, price: 4500},
+            {source: '男', target: 'vivo', value: 530, price: 3500},
+            {source: '男', target: '其他', value: 1630, price: 3000},
+            {source: '女', target: '华为', value: 680, price: 8000},
+            {source: '女', target: '苹果', value: 1080, price: 10000},
+            {source: '女', target: '小米', value: 370, price: 5000},
+            {source: '女', target: 'OPPO', value: 850, price: 6000},
+            {source: '女', target: 'vivo', value: 630, price: 4000},
+            {source: '女', target: '其他', value: 1090, price: 3500},
+            {source: '华为', target: '45岁以上', value: 135, price: 11000},
+            {source: '华为', target: '35-44岁', value: 319, price: 8500},
+            {source: '华为', target: '25-34岁', value: 986, price: 7500},
+            {source: '华为', target: '18-24岁', value: 240, price: 6000},
+            {source: '华为', target: '18岁以下', value: 100, price: 5000},
+            {source: '苹果', target: '45岁以上', value: 80, price: 6500},
+            {source: '苹果', target: '35-44岁', value: 121, price: 7800},
+            {source: '苹果', target: '25-34岁', value: 659, price: 8500},
+            {source: '苹果', target: '18-24岁', value: 545, price: 8000},
+            {source: '苹果', target: '18岁以下', value: 405, price: 6000},
+            {source: '小米', target: '45岁以上', value: 55, price: 5000},
+            {source: '小米', target: '35-44岁', value: 117, price: 4500},
+            {source: '小米', target: '25-34岁', value: 655, price: 4500},
+            {source: '小米', target: '18-24岁', value: 138, price: 4000},
+            {source: '小米', target: '18岁以下', value: 85, price: 5000},
+            {source: 'OPPO', target: '45岁以上', value: 67, price: 3500},
+            {source: 'OPPO', target: '35-44岁', value: 148, price: 6000},
+            {source: 'OPPO', target: '25-34岁', value: 598, price: 5500},
+            {source: 'OPPO', target: '18-24岁', value: 466, price: 6000},
+            {source: 'OPPO', target: '18岁以下', value: 201, price: 3500},
+            {source: 'vivo', target: '45岁以上', value: 39, price: 4000},
+            {source: 'vivo', target: '35-44岁', value: 85, price: 6000},
+            {source: 'vivo', target: '25-34岁', value: 611, price: 5000},
+            {source: 'vivo', target: '18-24岁', value: 290, price: 6000},
+            {source: 'vivo', target: '18岁以下', value: 135, price: 4000},
+            {source: '其他', target: '45岁以上', value: 141, price: 3000},
+            {source: '其他', target: '35-44岁', value: 307, price: 3000},
+            {source: '其他', target: '25-34岁', value: 1336, price: 3000},
+            {source: '其他', target: '18-24岁', value: 594, price: 3000},
+            {source: '其他', target: '18岁以下', value: 342, price: 3000}
+        ];
+        
+        // 初始化图表
+        function initChart(data, links) {
+            var option = {
+                tooltip: {
+                    trigger: 'item',
+                    triggerOn: 'mousemove',
+                    formatter: function(params) {
+                        if (params.dataType === 'node') {
+                            return params.name;
+                        } else if (params.dataType === 'edge') {
+                            return params.data.source + ' → ' + params.data.target + 
+                                   '<br/>人数: ' + params.data.value + 
+                                   '<br/>平均价位: ¥' + params.data.price;
+                        }
+                    }
+                },
+                series: [{
+                    type: 'sankey',
+                    data: data,
+                    links: links,
+                    emphasis: {
+                        focus: 'adjacency'
+                    },
+                    levels: [
+                        {
+                            depth: 0,
+                            itemStyle: {
+                                color: '#fbb4ae'
+                            },
+                            lineStyle: {
+                                color: 'source',
+                                opacity: 0.6
+                            }
+                        },
+                        {
+                            depth: 1,
+                            itemStyle: {
+                                color: '#b3cde3'
+                            },
+                            lineStyle: {
+                                color: 'source',
+                                opacity: 0.6
+                            }
+                        },
+                        {
+                            depth: 2,
+                            itemStyle: {
+                                color: '#ccebc5'
+                            },
+                            lineStyle: {
+                                color: 'source',
+                                opacity: 0.6
+                            }
+                        }
+                    ],
+                    lineStyle: {
+                        curveness: 0.5
+                    },
+                    label: {
+                        color: 'rgba(0, 0, 0, 0.7)',
+                        fontFamily: 'Arial',
+                        fontSize: 12
+                    },
+                    itemStyle: {
+                        borderWidth: 1,
+                        borderColor: '#aaa'
+                    },
+                    nodeWidth: 15,
+                    nodeGap: 25
+                }]
+            };
+            
+            myChart.setOption(option);
+        }
+        
+        // 更新图表数据
+        function updateChart() {
+            var selectedBrand = document.getElementById('brandFilter').value;
+            var filteredLinks = [];
+            
+            if (selectedBrand === 'all') {
+                // 显示全部数据
+                initChart(allData, allLinks);
+                return;
+            }
+            
+            // 筛选与所选品牌相关的链接
+            var relatedNodes = new Set();
+            relatedNodes.add(selectedBrand);
+            
+            // 找出所有与所选品牌相关的链接
+            allLinks.forEach(function(link) {
+                if (link.source === selectedBrand || link.target === selectedBrand) {
+                    filteredLinks.push(link);
+                    relatedNodes.add(link.source);
+                    relatedNodes.add(link.target);
+                }
+            });
+            
+            // 找出所有相关的性别和年龄节点
+            allLinks.forEach(function(link) {
+                if (link.target === selectedBrand) {
+                    relatedNodes.add(link.source);
+                }
+                if (link.source === selectedBrand) {
+                    relatedNodes.add(link.target);
+                }
+            });
+            
+            // 筛选相关节点
+            var filteredData = allData.filter(function(node) {
+                return relatedNodes.has(node.name);
+            });
+            
+            initChart(filteredData, filteredLinks);
+        }
+        
+        // 初始化显示全部数据
+        initChart(allData, allLinks);
+        
+        // 响应窗口大小变化
+        window.addEventListener('resize', function() {
+            myChart.resize();
+        });
+    </script>
+</body>
+</html>
